@@ -18,7 +18,7 @@ public class APTrustMain extends JFrame {
 	public static final String PREF_BAGIT_LOC = "Bagit_Location";
 	public static final String PREF_APTRUST_LOC = "APTrust_Apps_Location";
 	public static final String PREF_INST_PREFIX = "APTrust_Institutional_Prefix";
-// TODO --- add pref, button and field for config file loc
+	public static final String PREF_CONFIG_LOC = "Config_Location";
 	public static Preferences prefs;
 	private JFileChooser fileChooser = new JFileChooser();
 	private JPanel pnlTop;
@@ -27,6 +27,11 @@ public class APTrustMain extends JFrame {
 	private JPanel pnlFileChoose;
 	private JLabel lblFileChoose;
 	private JTextField txtfFileChoose;
+	private JPanel pnlDetails;
+	private JLabel lblBagName;
+	private JTextField txtfBagName;
+	private JLabel lblAccess;
+	private JComboBox<String> combAccess;
 	private JPanel pnlInstChoose;
 	private JLabel lblInstChoose;
 	private JTextField txtfInstChoose;
@@ -36,6 +41,7 @@ public class APTrustMain extends JFrame {
 	private JButton btnShowPending;
 	private JButton btnSetBagitLoc;
 	private JButton btnSetAPTrustAppsLoc;
+	private JButton btnSetConfigLoc;
 	private JTextArea txt_fileinfo;
 
 	public static void main(String[] args) {
@@ -82,7 +88,27 @@ public class APTrustMain extends JFrame {
 				}	
 			}
         });
-        pnlTop.add(pnlFileChoose);        
+        pnlTop.add(pnlFileChoose);
+        
+        
+        pnlDetails = new JPanel();
+        FlowLayout f7 = new FlowLayout();
+        f7.setAlignment(FlowLayout.LEFT);
+        pnlDetails.setLayout(f7);
+        lblBagName = new JLabel("Bag Name:");
+        txtfBagName = new JTextField();
+        txtfBagName.setPreferredSize(new Dimension(200, 25));
+        lblAccess = new JLabel("Access:");
+        combAccess = new JComboBox<String>();
+        combAccess.setEditable(false);
+        combAccess.addItem("Consortia");
+        combAccess.addItem("Restricted");
+        combAccess.addItem("Institution");
+        pnlDetails.add(lblBagName);
+        pnlDetails.add(txtfBagName);
+        pnlDetails.add(lblAccess);
+        pnlDetails.add(combAccess);
+        pnlTop.add(pnlDetails);
         pnlInstChoose = new JPanel();
         FlowLayout f3 = new FlowLayout();
         f3.setAlignment(FlowLayout.LEFT);
@@ -110,7 +136,7 @@ public class APTrustMain extends JFrame {
 				t.start();	
 			}
         });
-        btnShowPending = new JButton("Show Pending Bundles");
+        btnShowPending = new JButton("Show Receiving Bucket");
         pnlActionButtons.add(btnShowPending);
         btnShowPending.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -137,8 +163,15 @@ public class APTrustMain extends JFrame {
 				setAPTrustAppsLoc();	
 			}
         });
+        btnSetConfigLoc = new JButton("Config Loc");
+        pnlActionButtons.add(btnSetConfigLoc);
+        btnSetConfigLoc.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				setConfigLoc();	
+			}
+        });
         pnlTop.add(pnlActionButtons);
-        pnlTop.setPreferredSize(new Dimension(210, 105));
+        pnlTop.setPreferredSize(new Dimension(210, 138));
         txt_fileinfo = new JTextArea(13, 24);
         txt_fileinfo.setEditable(false);
         Font font = new Font(Font.MONOSPACED, Font.PLAIN, 12);
@@ -156,6 +189,9 @@ public class APTrustMain extends JFrame {
 		}
         if (prefs.get(PREF_APTRUST_LOC, PREFS_NOVALUE).equals(PREFS_NOVALUE)) { 
 			txt_fileinfo.append("NOTE: APTrust apps location not found. Use 'APTrust Apps Loc' button above to find it before continuing, or download from https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools.\n");
+		}
+        if (prefs.get(PREF_CONFIG_LOC, PREFS_NOVALUE).equals(PREFS_NOVALUE)) { 
+			txt_fileinfo.append("NOTE: No config file found. Use 'Config Loc' button above to find it. See https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools for more details.\n");
 		}
         //grab existing info, if present
         if (!prefs.get(PREF_INST_PREFIX, PREFS_NOVALUE).equals(PREFS_NOVALUE)) { 
@@ -195,7 +231,36 @@ public class APTrustMain extends JFrame {
 	}
 	
 	private void showPending() {
-// TODO implement
+		this.btnUpload.setEnabled(false);
+		if (prefs.get(PREF_CONFIG_LOC, PREFS_NOVALUE).equals(PREFS_NOVALUE)) { 
+			txt_fileinfo.append("NOTE: No config file found. Use 'Config Loc' button above to find it. See https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools for more details.\n");
+			return;
+		}
+		if (prefs.get(PREF_APTRUST_LOC, PREFS_NOVALUE).equals(PREFS_NOVALUE)) { 
+			txt_fileinfo.append("NOTE: No APTrust apps found. Use 'APTrust Apps Loc' button above to find it. See https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools for more details.\n");
+			return;
+		}
+		txt_fileinfo.append("SHOWING BAGS IN RECIEVING BUCKET\n");
+		try {
+			ProcessBuilder builder = new ProcessBuilder(
+	            "cmd.exe", "/c", "apt_list --config=\"" + prefs.get(PREF_CONFIG_LOC, PREFS_NOVALUE) + "\" --bucket=receiving");
+	        builder.directory(new File(prefs.get(PREF_APTRUST_LOC, PREFS_NOVALUE)));
+			builder.redirectErrorStream(true);
+	        Process p = builder.start();
+	        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	        String line;
+	        while (true) {
+	            line = r.readLine();
+	            if (line == null) { break; }
+	            txt_fileinfo.append(line + "\n");
+	        }
+		} catch (IOException err) {
+			err.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Error running apt_list command.", "Validate command error", JOptionPane.ERROR_MESSAGE);
+			this.btnUpload.setEnabled(true);
+			return;
+		}
+		this.btnUpload.setEnabled(true);
 	}
 	
 	private void setAPTrustAppsLoc() {
@@ -216,6 +281,18 @@ public class APTrustMain extends JFrame {
 			txt_fileinfo.append("New APTrust apps location specified: " + x.getAbsolutePath());
 			//create new pref for this for next time
 			prefs.put(PREF_APTRUST_LOC, x.getAbsolutePath());
+		}	
+	}
+	
+	private void setConfigLoc() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		int response = fileChooser.showOpenDialog(null);
+		if (response != JFileChooser.CANCEL_OPTION) {
+			File x = fileChooser.getSelectedFile();
+			txt_fileinfo.append("New config file location specified: " + x.getAbsolutePath());
+			//create new pref for this for next time
+			prefs.put(PREF_CONFIG_LOC, x.getAbsolutePath());
 		}	
 	}
 	
@@ -336,7 +413,15 @@ public class APTrustMain extends JFrame {
 			this.btnUpload.setEnabled(true);
 			return;
 		}
-// TODO --- create info file --- need a new field for bag name and combo box for restriction
+		File infoFile = new File(baggedFolder.getAbsolutePath() + File.separator + "aptrust-info.txt");
+		try {
+			infoFile.createNewFile();
+		} catch (IOException err) {
+			err.printStackTrace();
+			txt_fileinfo.append("Error creating AP Trust info file.");
+			this.btnUpload.setEnabled(true);
+			return;
+		}
 		File tarFile;
 		try {
 			tarFile = new File(baggedFolder.getParent() + File.separator + baggedFolder.getName() + ".tar");
@@ -359,7 +444,7 @@ public class APTrustMain extends JFrame {
 		txt_fileinfo.append("VERIFYING BAG\n");
 		try {
 			ProcessBuilder builder = new ProcessBuilder(
-	            "cmd.exe", "/c", "apt_validate create \"" + tarFile);
+	            "cmd.exe", "/c", "apt_validate \"" + tarFile);
 	        builder.directory(new File(prefs.get(PREF_APTRUST_LOC, PREFS_NOVALUE)));
 			builder.redirectErrorStream(true);
 	        Process p = builder.start();
