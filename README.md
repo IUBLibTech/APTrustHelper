@@ -1,11 +1,11 @@
-APTrustHelper is a small Java GUI application which assists with transmitting files downloaded from a DSpace repository to APTrust.
+APTrustHelper is a small Java GUI application which assists with transmitting files exported from a DSpace repository to APTrust.
 
 Prerequisites
 =============
 Before using the program, you'll need the following.
 * The bagit-java executable, downloaded from https://github.com/LibraryOfCongress/bagit-java.
 * The AP Trust helper tools (Windows only), downloaded from https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools.
-* A valid configuration file which contains the credentials needed to conect to AP Trust. See https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools for more details on how the config file should be constructed.
+* A valid configuration file which contains the credentials needed to connect to AP Trust. See https://sites.google.com/a/aptrust.org/aptrust-wiki/home/partner-tools for more details on how the config file should be constructed.
 
 How To Use
 ==========
