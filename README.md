@@ -29,4 +29,5 @@ Current Issues and Limitations
 1. When uploading bags, the program is currently throwing an error about getting an MD5 receipt. However, the file does upload successfully.
 2. Eventually the bagit-java code could be integrated rather than used as a separate program.
 3. Works with Windows only.
-2. Works only with single-item zip files exported directly from a DSpace 4 or 5 repository.
+4. Works only with single-item zip files exported directly from a DSpace 4 or 5 repository.
+5. Currently bag name is specified each time. Might be possible to pull bag name from package metadata.
