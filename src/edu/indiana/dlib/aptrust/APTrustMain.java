@@ -89,8 +89,6 @@ public class APTrustMain extends JFrame {
 			}
         });
         pnlTop.add(pnlFileChoose);
-        
-        
         pnlDetails = new JPanel();
         FlowLayout f7 = new FlowLayout();
         f7.setAlignment(FlowLayout.LEFT);
@@ -306,6 +304,10 @@ public class APTrustMain extends JFrame {
 			txt_fileinfo.append("ERROR: APTrust location unknown. Use 'APTrust Apps Loc' button above to find it before continuing.\n");
 			return;
 		}
+		if (this.txtfBagName.getText().trim().equals("")) {
+			txt_fileinfo.append("ERROR: Bag name must be specified.\n");
+			return;
+		}
 		//remember institutional setting
 		prefs.put(PREF_INST_PREFIX, txtfInstChoose.getText());
 		this.btnUpload.setEnabled(false);
@@ -416,6 +418,10 @@ public class APTrustMain extends JFrame {
 		File infoFile = new File(baggedFolder.getAbsolutePath() + File.separator + "aptrust-info.txt");
 		try {
 			infoFile.createNewFile();
+			FileWriter fw = new FileWriter(infoFile);
+			fw.write("Title: " + this.txtfBagName.getText());
+			fw.write("\n" + "Access: " + this.combAccess.getSelectedItem());
+			fw.close();
 		} catch (IOException err) {
 			err.printStackTrace();
 			txt_fileinfo.append("Error creating AP Trust info file.");
@@ -471,7 +477,26 @@ public class APTrustMain extends JFrame {
 			return;
 		}
 		/* ======== STEP 4 - UPLOAD BAG ============== */
-// TODO - IMPLEMENT
+		txt_fileinfo.append("UPLOADING BAG\n");
+		try {
+			ProcessBuilder builder = new ProcessBuilder(
+	            "cmd.exe", "/c", "apt_upload --config=\"" + prefs.get(PREF_CONFIG_LOC, PREFS_NOVALUE) + "\" " + tarFile);
+	        builder.directory(new File(prefs.get(PREF_APTRUST_LOC, PREFS_NOVALUE)));
+			builder.redirectErrorStream(true);
+	        Process p = builder.start();
+	        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	        String line;
+	        while (true) {
+	            line = r.readLine();
+	            if (line == null) { break; }
+	            txt_fileinfo.append(line + "\n");
+	        }
+		} catch (IOException err) {
+			err.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Error uploading bag.", "Validate command error", JOptionPane.ERROR_MESSAGE);
+			this.btnUpload.setEnabled(true);
+			return;
+		}
 		this.btnUpload.setEnabled(true);
 	}
 		
@@ -512,7 +537,6 @@ public class APTrustMain extends JFrame {
         }
         parent = ( ( parent == null ) ? ( f.isFile() ) ? "" : f.getName() + "/" : parent + f.getName() + "/" );
         for (int i = 0; i < files.length; i++) {
-            System.out.println( "Adding: " + files[i] );
             File fe = f;
             byte data[] = new byte[2048];
             if (f.isDirectory()) {
