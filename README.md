@@ -18,11 +18,11 @@ What Upload Does
 ================
 1. Unzips the DSpace zip file.
 2. Uses bagit-java to create a bag of the zip file contents.
-3. Name the bag using the institutional prefix and handle from the DSpace handle file.
-4. Add the aptrust-info.txt file to the bag.
-5. Tar the bag.
-5. Validate the bag using the AP Trust tools.
-6. If the bag passes validation, upload the bag using the AP Trust tools.
+3. Names the bag using the institutional prefix specified, and the handle from the DSpace handle file.
+4. Adds the aptrust-info.txt file to the bag.
+5. Tars the bag.
+5. Validates the bag using the AP Trust tools.
+6. If the bag passes validation, uploads the bag using the AP Trust tools.
 
 Current Issues and Limitations
 ==============
